@@ -355,7 +355,6 @@ module.exports = class WebRTC {
 
         return new Promise((resolve, reject) => {
             this.sendData(data);
-
             this.events.on(`responseFor:${uid}`, (response) => {
                 resolve(response);
             });

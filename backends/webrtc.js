@@ -2,9 +2,12 @@ const frappe = require('frappejs');
 const Observable = require('frappejs/utils/observable');
 
 module.exports = class WebRTCClient extends Observable {
+  constructor(){
+    super();
+    this.initTypeMap();
+  }
 
-  async insert(doctype, docObj) {
-    var doc = this.getBasicDoc(docObj);
+  async insert(doctype, doc) {
     const obj = {
       method: 'insert',
       payload: [doctype, doc]
@@ -28,8 +31,7 @@ module.exports = class WebRTCClient extends Observable {
     return await frappe.webRTC.sendRequest(obj);
   }
 
-  async update(doctype, docObj) {
-    var doc = this.getBasicDoc(docObj);
+  async update(doctype, doc) {
     const obj = {
       method: 'update',
       payload: [doctype, doc]
@@ -69,14 +71,35 @@ module.exports = class WebRTCClient extends Observable {
     return await frappe.webRTC.sendRequest(obj);
   }
 
-  getBasicDoc(docObj){
-    var doc = {};
-    for(var i in docObj._meta.fields){
-        var field_name = docObj._meta.fields[i].fieldname;
-        if(field_name && docObj[field_name]){
-            doc[field_name] = docObj[field_name];
-        }
+  initTypeMap() {
+    this.typeMap = {
+        'Autocomplete': true
+        , 'Currency': true
+        , 'Int': true
+        , 'Float': true
+        , 'Percent': true
+        , 'Check': true
+        , 'Small Text': true
+        , 'Long Text': true
+        , 'Code': true
+        , 'Text Editor': true
+        , 'Date': true
+        , 'Datetime': true
+        , 'Time': true
+        , 'Text': true
+        , 'Data': true
+        , 'Link': true
+        , 'DynamicLink': true
+        , 'Password': true
+        , 'Select': true
+        , 'Read Only': true
+        , 'File': true
+        , 'Attach': true
+        , 'Attach Image': true
+        , 'Signature': true
+        , 'Color': true
+        , 'Barcode': true
+        , 'Geolocation': true
     }
-    return doc;
   }
 }
