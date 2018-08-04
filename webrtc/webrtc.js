@@ -72,12 +72,14 @@ module.exports = class WebRTC {
             console.log(event.res);
             if(event.res == 'started'){
                 console.log('Server started successfully');
+                localStorage.serverStatus = 'on';
                 if(typeof that.onServerResponse === 'function'){
                     that.onServerResponse(true);
                 }
             }
             else if(event.res == 'stopped'){
                 console.log('Server stopped successfully');
+                localStorage.serverStatus = 'off';
                 var stop = JSON.stringify({
                     webrtcConn:{
                         type: 'stop',
@@ -97,7 +99,7 @@ module.exports = class WebRTC {
             else if(event.res == 'exists'){
                 console.log('Server name already exists');
                 if(typeof that.onServerResponse === 'function'){
-                    that.onServerResponse(true);
+                    that.onServerResponse(false);
                 }
             }
             else if(event.res == 'incorrect'){
@@ -114,6 +116,7 @@ module.exports = class WebRTC {
                 });
                 settings.insert().then(doc => {
                     console.log('Registered and started successfully');
+                    localStorage.serverStatus = 'on';
                     if(typeof that.onServerResponse === 'function'){
                         that.onServerResponse(true);
                     }
