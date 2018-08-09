@@ -1,8 +1,8 @@
 const utils = require('frappejs/utils');
 const Observable = require('frappejs/utils/observable');
+const frappe = require('frappejs');
 
 module.exports = class WebRTC {
-
     constructor(socket){
         this.dataChannels = {};
         this.connections = {};
@@ -99,7 +99,7 @@ module.exports = class WebRTC {
             else if(event.res == 'exists'){
                 console.log('Server name already exists');
                 if(typeof that.onServerResponse === 'function'){
-                    that.onServerResponse(false);
+                    that.onServerResponse('exists');
                 }
             }
             else if(event.res == 'incorrect'){
@@ -247,13 +247,14 @@ module.exports = class WebRTC {
         this.connections[id].ondatachannel = event => {
             const receiveChannel = event.channel;
             receiveChannel.onmessage = async message => {
+                console.log(message);
                 try{
                     var data = JSON.parse(message.data);
                 }
                 catch(e){
                     var data = message.data;
                 }                
-                console.log(message.data);
+                console.log(JSON.stringify(data));
                 if(data.webrtcAuth){
                     var payload = data.webrtcAuth;
                     console.log(payload);
@@ -282,13 +283,17 @@ module.exports = class WebRTC {
                 }
                 else if(data.type === 'request') {
                     const method = data.method;
-
                     const args = Array.isArray(data.payload) ? data.payload : [data.payload];
                     const response = await frappe.db[method](...data.payload);
                     this.sendResponse(data.senderID, data._uid, response);
                 }
                 else if(data.type === 'response'){
                     this.events.trigger(`responseFor:${data._uid}`, data.payload);
+                }
+                else if(data.type === 'event'){
+                    console.log('received event');
+                    frappe.db.trigger(`change:${data.doctype}`, {name:data.name}, 500);
+                    frappe.db.trigger(`change`, {doctype:data.name, name:data.name}, 500);
                 }
                 else{
                     if(typeof this.onDataReceive === 'function'){
@@ -355,7 +360,6 @@ module.exports = class WebRTC {
         obj.senderID = this.uniqueId;
         obj.type = 'request';
         const data = JSON.stringify(obj);
-
         return new Promise((resolve, reject) => {
             this.sendData(data);
             this.events.on(`responseFor:${uid}`, (response) => {
@@ -372,6 +376,20 @@ module.exports = class WebRTC {
         };
         const data = JSON.stringify(obj);
         this.sendData(data, senderID);
+    }
+
+    sendEvent(doctype, name){
+        const obj = {
+            doctype: doctype,
+            name: name,
+            type: 'event'
+        };
+        const data = JSON.stringify(obj);
+        for (var clientID in this.connections) {
+            if (this.connections.hasOwnProperty(clientID)) {
+                this.sendData(data, clientID);
+            }
+        }
     }
 
     removeConnection(id){

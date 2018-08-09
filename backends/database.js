@@ -195,8 +195,10 @@ module.exports = class Database extends Observable {
     }
 
     triggerChange(doctype, name) {
+        console.log('trigger');
         this.trigger(`change:${doctype}`, {name:name}, 500);
         this.trigger(`change`, {doctype:name, name:name}, 500);
+        frappe.webRTC.sendEvent(doctype, name);
     }
 
     async insert(doctype, doc) {
