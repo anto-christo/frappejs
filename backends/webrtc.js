@@ -1,7 +1,7 @@
 const frappe = require('frappejs');
-const Observable = require('frappejs/utils/observable');
+const Database = require('frappejs/backends/database');
 
-module.exports = class WebRTCClient extends Observable {
+module.exports = class WebRTCClient extends Database {
   constructor(){
     super();
     this.initTypeMap();
@@ -12,6 +12,7 @@ module.exports = class WebRTCClient extends Observable {
       method: 'insert',
       payload: [doctype, doc]
     };
+    this.triggerChange(doctype, name);
     return await frappe.webRTC.sendRequest(obj);
   }
 
@@ -36,6 +37,7 @@ module.exports = class WebRTCClient extends Observable {
       method: 'update',
       payload: [doctype, doc]
     };
+    this.triggerChange(doctype, name);
     return await frappe.webRTC.sendRequest(obj);
   }
 
@@ -44,6 +46,7 @@ module.exports = class WebRTCClient extends Observable {
       method: 'delete',
       payload: [doctype, name]
     };
+    this.triggerChange(doctype, name);
     return await frappe.webRTC.sendRequest(obj);
   }
 

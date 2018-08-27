@@ -11,13 +11,21 @@ module.exports = class WebRTC {
         this.masterNode;
         this.uniqueId;
         this.socket = socket;
+        // this.iceServers = {
+        //     'iceServers': [{
+        //             'url': 'stun:stun.services.mozilla.com'
+        //         },
+        //         {
+        //             'url': 'stun:stun.l.google.com:19302'
+        //         }
+        //     ]
+        // };
         this.iceServers = {
             'iceServers': [{
-                    'url': 'stun:stun.services.mozilla.com'
+                    url: 'turn:192.168.0.104:3478',
+                    username: 'frappe',
+                    credential: 'frappe'
                 },
-                {
-                    'url': 'stun:stun.l.google.com:19302'
-                }
             ]
         };
         this.setupSocketHandlers();
@@ -128,6 +136,7 @@ module.exports = class WebRTC {
             console.log(creatorID);
             if(creatorID == 'fail'){
                 console.log('Server does not exist');
+                that.onConnectionResponse('fail');
             }
             else{
                 that.setupConnection(creatorID);
@@ -347,7 +356,12 @@ module.exports = class WebRTC {
                 this.sendData(stop,clientID);
                 this.removeConnection(clientID);
             }
-        }); 
+        })
+        .catch(error => {
+            this.sendData(negative, clientID);
+            this.sendData(stop,clientID);
+            this.removeConnection(clientID);
+        });
     }
 
     sendData(data,receiver = this.masterNode){
@@ -393,9 +407,11 @@ module.exports = class WebRTC {
     }
 
     removeConnection(id){
-        this.dataChannels[id].close();
-        this.connections[id].close();
-        delete this.dataChannels[id];
-        delete this.connections[id];
+        if(this.dataChannels[id] && this.connections[id]){
+            this.dataChannels[id].close();
+            this.connections[id].close();
+            delete this.dataChannels[id];
+            delete this.connections[id];
+        }
     }
 }
